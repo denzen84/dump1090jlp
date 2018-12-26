@@ -119,15 +119,18 @@ def is_valid_jet(hex, callsign):
                 # print(cmd)
                 subprocess.call(cmd, shell = True)
 
-
 if __name__ == '__main__':
     while True:
-        with open(json_aircrafts) as json_file:
-            data = json.load(json_file)
-        check_ttl()
-        for x in data['aircraft']:
-            if 'flight' in x.keys():
-                is_valid_jet(x['hex'].upper(), x['flight'].strip())
-            else:
-                is_valid_jet(x['hex'].upper(), '')
+        try:
+            with open(json_aircrafts) as json_file:
+                data = json.load(json_file)
+        except:
+            pass
+        else:
+            check_ttl()
+            for x in data['aircraft']:
+                if 'flight' in x.keys():
+                    is_valid_jet(x['hex'].upper(), x['flight'].strip())
+                else:
+                    is_valid_jet(x['hex'].upper(), '')
         time.sleep(tts)
