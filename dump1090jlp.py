@@ -84,40 +84,42 @@ def check_ttl():
         if ttl > ttl_max:
             del flights_hex[i]
     for i in cp_flights_callsign:
-        ttl = time.time() - cp_flights_callsign[i]
+        ttl = time.time() - cp_flights_callsign[i][0]
         if ttl > ttl_max:
             del flights_callsign[i]
-
 
 def update_dict_hex(hex):
     if hex not in flights_hex:
         flights_hex[hex] = time.time()
         return True
     else:
+        flights_hex[hex] = time.time()
         return False
 
-
-def update_dict_callsign(hex):
+def update_dict_callsign(hex, callsign):
     if hex not in flights_callsign:
-        flights_callsign[hex] = time.time()
+        flights_callsign[hex] = [time.time(), callsign]
         return True
     else:
-        return False
-
+        if flights_callsign[hex][1] == callsign:
+            flights_callsign[hex] = [time.time(), callsign]
+            return False
+        flights_callsign[hex] = [time.time(), callsign]
+        return True
 
 def is_valid_jet(hex, callsign):
     for mask in mask_hex:
         if fnmatch.fnmatch(hex, mask):
             if update_dict_hex(hex):
-                cmd = '{0} \"{1} {2}, HEX={3}\"'.format(script, msg, mask_hex[mask], hex)
-                # print(cmd)
-                subprocess.call(cmd, shell = True)
+                today = datetime.datetime.today()
+                cmd = '{0} "\\xF0\\x9F\\x95\\x93{1} @ {2}: {3} \\xF0\\x9F\\x86\\x94{4}"'.format(script, today.strftime("[%H:%M] %Y.%m.%d"), msg, mask_hex[mask], hex)
+                subprocess.call(cmd, shell=True)
     for mask in mask_callsign:
         if fnmatch.fnmatch(callsign, mask):
-            if update_dict_callsign(hex):
-                cmd = '{0} \"{1} {2} {3}, HEX={4}\"'.format(script, msg, mask_callsign[mask], callsign, hex)
-                # print(cmd)
-                subprocess.call(cmd, shell = True)
+            if update_dict_callsign(hex, callsign):
+                today = datetime.datetime.today()
+                cmd = '{0} "\\xF0\\x9F\\x95\\x93{1} @ {2}: {3} {4} \\xF0\\x9F\\x86\\x94{5}"'.format(script, today.strftime("[%H:%M] %Y.%m.%d"), msg, mask_callsign[mask], callsign, hex)
+                subprocess.call(cmd, shell=True)
 
 if __name__ == '__main__':
     while True:
@@ -126,7 +128,7 @@ if __name__ == '__main__':
                 data = json.load(json_file)
         except:
             pass
-        else:
+        else:            
             check_ttl()
             for x in data['aircraft']:
                 if 'flight' in x.keys():
